@@ -1,4 +1,5 @@
-function vandera_function(time,Hs, Td, depth, d50, d90, umag_curr, phi_curwave, uhat )
+function vandera_function(time,Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms )
+uhat=urms*sqrt(2.0);
 
 fid=fopen('taran.txt','w');
 %fprintf(fid,'------------------------------\n');
@@ -214,7 +215,7 @@ cff1=0.5*T_c/(T_cu);
 cff2=sqrt(mag_theta_c)*T_c*(om_cc+cff1*om_tc);
 %
 cff3=theta_cx/mag_theta_c;
-bedld_cx=cff2*cff3;
+bedld_cx=cff2*cff3 ; 
 %
 cff3=theta_cy/mag_theta_c;
 bedld_cy=cff2*cff3;
@@ -232,7 +233,7 @@ bedld_ty=cff2*cff3;
 % bed_frac, rhos multiplied
 %
 bed_frac=1.0;
-bedld_x=bed_frac*smgd_3*(bedld_cx+bedld_tx)/Td;
+bedld_x=bed_frac*smgd_3*(bedld_cx+bedld_tx)/Td ;
 bedld_y=bed_frac*smgd_3*(bedld_cy+bedld_ty)/Td;
 
 fprintf(fid,'------------------------------\n');
@@ -303,6 +304,7 @@ end
 
 % TODO CRS - this is not the same eps_eff that I put into the main routine
 eps_eff=(dsf/d50)^0.25; 
+%eps_eff=1.0; 
 theta_ieff=eps_eff*mag_theta_i;
 %
 % Find critical Shields parameters based on Soulsby (1997).
@@ -310,9 +312,10 @@ theta_ieff=eps_eff*mag_theta_i;
 theta_cr=theta_cr_calc(d50, rhos);
 %
 % Sand load entrained in the flow during each half-cycle
-%
-
-om_i=max(m*(theta_ieff-theta_cr)^n,0.0);
+% 
+theta_diff=max((theta_ieff-theta_cr),0.0) ;
+om_i=m*(theta_diff)^n
+         
 %
 % VA2013 Equation 23-26, Sandload entrained during half cycle
 % 
@@ -837,7 +840,7 @@ end
 %
 if(r >= 0.0 && r<0.5)
     betar_0=0.5*(1.0+r);
-elseif(r>0.5 && r<0.5)
+elseif(r>0.5 && r<1.0)
     cff1=4.0*r*(1.0+r);
     cff2=cff1+1.0;
     betar_0=cff1/cff2;
