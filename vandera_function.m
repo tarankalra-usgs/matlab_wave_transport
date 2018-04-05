@@ -1,7 +1,7 @@
 function vandera_function(time,Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms )
 uhat=urms*sqrt(2.0);
 
-fid=fopen('taran.txt','w');
+fid=fopen('vandera_output.txt','w');
 %fprintf(fid,'------------------------------\n');
 fprintf(fid,'Signifcnt wave height(m) %f\n',Hs); 
 fprintf(fid,'Surface wave period(s)  %f\n',Td); 
@@ -233,7 +233,7 @@ bedld_ty=cff2*cff3;
 % bed_frac, rhos multiplied
 %
 bed_frac=1.0;
-bedld_x=bed_frac*smgd_3*(bedld_cx+bedld_tx)/Td ;
+bedld_x=bed_frac*smgd_3*(bedld_cx+bedld_tx)/Td  ;
 bedld_y=bed_frac*smgd_3*(bedld_cy+bedld_ty)/Td;
 
 fprintf(fid,'------------------------------\n');
@@ -305,7 +305,7 @@ end
 % TODO CRS - this is not the same eps_eff that I put into the main routine
 eps_eff=(dsf/d50)^0.25; 
 %eps_eff=1.0; 
-theta_ieff=eps_eff*mag_theta_i;
+theta_ieff=eps_eff*mag_theta_i ;
 %
 % Find critical Shields parameters based on Soulsby (1997).
 %
@@ -314,7 +314,7 @@ theta_cr=theta_cr_calc(d50, rhos);
 % Sand load entrained in the flow during each half-cycle
 % 
 theta_diff=max((theta_ieff-theta_cr),0.0) ;
-om_i=m*(theta_diff)^n
+om_i=m*(theta_diff)^n ;
          
 %
 % VA2013 Equation 23-26, Sandload entrained during half cycle
@@ -508,7 +508,7 @@ fprintf(fid,'tau_wRe %f\n',tau_wRe);
 %
 % Wave friction factor for wave and crest half cycle VA2013 Eqn. 21
 %
-fw_i=fwi_calc(T_iu, T_i, ahat, ksw);
+fw_i=fwi_calc(T_iu, T_i, ahat, ksw) ;
 %
 % Wave current friction factor (Madsen and Grant) VA2013 Eqn. 18
 % Different for crest and trough
@@ -517,7 +517,7 @@ fwd_i=alpha*fd+(1.0-alpha)*fw_i;
 %
 % VA2013-Magnitude of Shields parameter Eqn. 17
 %
-mag_theta_i=0.5*fwd_i*mag_ui^2*osmgd;
+mag_theta_i=0.5*fwd_i*mag_ui^2*osmgd  ;
 
 end % function stress_progressive_surface_waves
 
@@ -651,7 +651,7 @@ function fw = fw_calc(ahat, ksw);
 % Calculate full-cycle wave friction factor from VA2013 Eqn. A.4.
 %
 ratio=ahat/ksw;
-if(ratio>1.587)
+if(ratio>1.587);
     fw = 0.00251*exp(5.21*(ratio)^(-0.19));
 else
     fw = 0.3;
@@ -682,7 +682,8 @@ c1=2.6;
 ratio=ahat/ksw;
 if(ratio>1.587)
     cff=(2.0*T_iu/T_i)^c1;
-    fwi = 0.00251*exp(5.21*(cff*ratio)^(-0.19));
+   % cff1=(cff*ratio)
+    fwi=0.00251*exp(5.21*(cff*ratio)^(-0.19)) ;
 else
     fwi = 0.3;
 end
@@ -794,14 +795,30 @@ b=r/(1.0+P);
 %
 c=b*sin(phi_new);
 %
-cff1=4.0*c*(b*b-c*c)+(1.0-b*b)*(1.0+b*b-2.0*c*c);
-cff2=(1.0+b*b)^2.0-4.0*c*c;
-tmc=asin(cff1/cff2);
+cff1=4.0*c*(b*b-c*c)+(1.0-b*b)*(1.0+b*b-2.0*c*c) ;
+cff2=(1.0+b*b)^2.0-4.0*c*c ;
+ratio=cff1/cff2; 
+if(ratio>1.0) 
+  ratio=1.0  ;
+end
+if(ratio<-1.0) 
+  ratio=-1.0 ;
+end
+tmc=asin(ratio) ;
+
 %
 cff1=4.0*c*(b*b-c*c)-(1.0-b*b)*(1.0+b*b-2.0*c*c);
 cff2=(1.0+b*b)^2.0-4.0*c*c;
-tmt=asin(cff1/cff2);
-%
+ratio=cff1/cff2; 
+if(ratio>1.0) 
+  ratio=1.0  ;
+end
+if(ratio<-1.0) 
+  ratio=-1.0 ;
+end
+tmt=asin(ratio) ;
+
+
 if(tmt<0.0)
     tmt=tmt+2.0*pi;
 end
@@ -821,7 +838,7 @@ umin=umin*Uw;
 %
 % phase of zero upcrossing and downcrossing (radians)
 %
-tzu=asin(b*sin(phi_new));
+ tzu=asin(b*sin(phi_new)) ;
 tzd=2.0*acos(c)+tzu;
 %
 % MD, equation 17

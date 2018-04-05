@@ -1,4 +1,4 @@
-% call vandera_function. 
+% call standalone code 
 
 % This is based on the prototype code intended for ROMS, as of
 % March 21, 2018
@@ -17,12 +17,12 @@ eps_eff = 1.;
 %      Td=dominant wave period
 %      depth=water depth(m)
 %
-Hs = 5.0;
-Td = 3.5;
-depth =  3.5;
-d50 = 0.15e-3;
+
+ Td = 6.5;%3.5;
+depth =  3.5;%3.5;
+d50 = 0.13e-3;
 d90 = 1.5*d50;
-%
+Hs=1.3; 
 % umag_curr is the current velocity magnitude (MAKE Sure its the magnitude)
 % direction of currents is counter-clockwise from wave direction
 %
@@ -30,12 +30,9 @@ umag_curr=abs(0.0);
 %phi_curwave=45.0*deg2rad
 deg2rad=pi/180.0; 
 phi_curwave=0.0*deg2rad;
-
-
+urms=1.0;
+vandera_function(i,Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms )
 %
 % uhat and ahat for the entire wave cycle  uhat is the wave orbital velocity defiend for the entire wave cycle
 % TSK --. HARDWIRED for now but later needs to be based on a function for JONSWAP spectrum
-uhat=1.02;
-
-time=1;
-vandera_function(time,Hs, Td, depth, d50, d90, umag_curr, phi_curwave, uhat);
+ 
