@@ -97,7 +97,7 @@ fprintf(fid,'crest cycle:: sheetflow thickness(m) %f\n', dsf_c );
 %-----------------------------------------------------------------------
 %
 wavecycle=-1.0;
-[dsf_t, theta_tx, theta_ty, mag_theta_t]=half_wave_cycle_factors(T_tu, T_t,......
+[dsf_t, theta_tx, theta_ty, mag_theta_t]=half_wave_cycle_stress_factors(T_tu, T_t,......
                            ut_r, uhat_t, udelta, phi_curwave,....
                            alpha, fd, ahat, ksw, tau_wRe);
 
@@ -119,7 +119,7 @@ fprintf(fid,'trough cycle:: sheetflow thickness(m) %f\n', dsf_t );
 %-----------------------------------------------------------------------
 %
 wavecycle=1.0;
-[ om_cc, om_ct ]= sandload_vandera(wavecycle,...
+[ om_cc, om_tc ]= sandload_vandera(wavecycle,...
     Hs, Td,  depth, RR,                 ...
     d50, rhos, c_w,                     ...
     eta, dsf_c,                           ...
@@ -130,7 +130,7 @@ wavecycle=1.0;
 %-----------------------------------------------------------------------
 %
 wavecycle=-1.0;
-[om_tt, om_tc] = sandload_vandera(wavecycle,...
+[om_tt, om_ct] = sandload_vandera(wavecycle,...
     Hs, Td,  depth, RR,                 ...
     d50, rhos, c_w,                     ...
     eta, dsf_t,                           ...
@@ -140,19 +140,18 @@ wavecycle=-1.0;
 % Non-dimensional net transport rate
 %-----------------------------------------------------------------------
 %
-smgd_3=sqrt((rhos/rho0-1.0)*g*d50.^3.0);
 %
 cff1=0.5*T_c/(T_cu);
-cff2=sqrt(mag_theta_c)*T_c*(om_cc+cff1*om_tc);
+cff2=sqrt(mag_theta_c)*(om_cc+cff1*om_tc);
 %
 cff3=theta_cx/mag_theta_c;
 bedld_cx=cff2*cff3 ; 
 %
 cff3=theta_cy/mag_theta_c;
 bedld_cy=cff2*cff3;
-
+% 
 cff1=0.5*T_t/(T_tu);
-cff2=sqrt(mag_theta_t)*T_t*(om_tt+cff1*om_ct);
+cff2=sqrt(mag_theta_t)*(om_tt+cff1*om_ct);
 
 cff3=theta_tx/mag_theta_t;
 bedld_tx=cff2*cff3;
@@ -163,9 +162,14 @@ bedld_ty=cff2*cff3;
 % The units of these are m2 sec-1
 % bed_frac, rhos multiplied
 %
+smgd_3=sqrt((rhos/rho0-1.0)*g*d50.^3.0);
+
 bed_frac=1.0;
-bedld_x=bed_frac*smgd_3*(bedld_cx+bedld_tx)/Td  ;
-bedld_y=bed_frac*smgd_3*(bedld_cy+bedld_ty)/Td;
+bedld_x=bed_frac*(bedld_cx*T_c+bedld_tx*T_t)/Td;
+bedld_y=bed_frac*(bedld_cy*T_c+bedld_ty*T_t)/Td;
+
+bedld_x=bed_frac*smgd_3*(bedld_x) ;
+bedld_y=bed_frac*smgd_3*(bedld_y) ;
 
 fprintf(fid,'------------------------------\n');
 fprintf(fid,'bedload in x and y dir %f %f\n',bedld_x,bedld_y); 
@@ -200,17 +204,20 @@ end
 %
 % VA2013 Equation 30, for trough cycle
 %
+% Not allowed it to get to zero because it gets divided 
+% leading to an infinite phase lag 
+%  0.36*w_s is from Shant and Dong
+% 
 if(wavecycle==-1.0);
     w_sc_eta=max(w_s-ws_eta,0.36*w_s);
     w_sc_dsf=max(w_s-ws_dsf,0.36*w_s);
 end
 %
 % VA2013 Equation 33, Phase lag parameter
-%
 %cff=(1.0-wavecycle*xi*uhat_i)/c_w;
-
+% 
 cff=(1.0-((wavecycle*xi*uhat_i)/(c_w)));
-
+% 
 cff1_eta=(1.0/(2.0*(T_i-T_iu)*w_sc_eta));
 cff1_dsf=(1.0/(2.0*(T_i-T_iu)*w_sc_dsf)); 
 %
