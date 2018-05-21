@@ -7,6 +7,7 @@ fprintf(fid,'Surface wave period(s)  %f\n',Td);
 fprintf(fid,'Depth(m) %f\n',depth); 
 fprintf(fid,'Current velocity(m/s) %f\n',umag_curr); 
 fprintf(fid,'Current directiond(degrees) %f\n',phi_curwave);
+fprintf(fid,'Urms %f\n',urms); 
 fprintf(fid,'Sediment d50(m) %f\n', d50);
 
 %Summary of this function goes here
@@ -70,9 +71,11 @@ ut_r=0.5*sqrt(2.0)*uhat_t;
 [T_c, T_t, T_cu, T_tu, eta, udelta, alpha, ksw, tau_wRe]=..... 
                          full_wave_cycle_stress_factors(d50, d90, osmgd, .....
                              Td, depth, T_c, T_t, T_cu, T_tu, RR, ......
-                             umag_curr, phi_curwave, Zref, uhat, ahat);   
+                     umag_curr, phi_curwave, Zref, umax, umin, uhat, ahat);   
 %
-fprintf(fid,'ripple height(m) %f\n', eta);                       
+fprintf(fid,'ripple height(m) %f\n', eta);  
+fprintf(fid,'Wave Averaged Reynolds stress %f\n', tau_wRe);                       
+fprintf(fid,'current velocity at WBL. %f\n', udelta);                       
 %
 %-----------------------------------------------------------------------
 % 2. Bed shear stress (Shields parameter) for Crest half cycle
@@ -84,6 +87,7 @@ wavecycle=1.0;
                    uc_r, uhat_c, udelta, phi_curwave, ..........
                    alpha, fd, ahat, ksw, tau_wRe);
 %
+fprintf(fid,'------------------------------\n');
 fprintf(fid,'crest (T_c,T_cu) %f, %f\n', T_c, T_cu);
 fprintf(fid,'------------------------------\n');
 fprintf(fid,'|theta_c|,theta_cx, theta_cy: %f %f %f\n',...
@@ -192,9 +196,10 @@ xi=1.7; % Based on Santoss_core.m
 % VA2013 Use 0.8*d50 for settling velocity (text under equation 28).
 %
 w_s=w_s_calc(0.8*d50, rhos);
+ 
 %
 % VA2013 Equation 29, for crest cycle
-%
+%  
 ws_eta=w_sc_calc(Hs, Td, depth, RR, w_s, eta);
 ws_dsf=w_sc_calc(Hs, Td, depth, RR, w_s, dsf);
 if(wavecycle==1.0);
@@ -209,8 +214,8 @@ end
 %  0.36*w_s is from Shant and Dong
 % 
 if(wavecycle==-1.0);
-    w_sc_eta=max(w_s-ws_eta,0.36*w_s);
-    w_sc_dsf=max(w_s-ws_dsf,0.36*w_s);
+    w_sc_eta=max(w_s-ws_eta,0.0);
+    w_sc_dsf=max(w_s-ws_dsf,0.0);
 end
 %
 % VA2013 Equation 33, Phase lag parameter
@@ -221,17 +226,7 @@ cff=(1.0-((wavecycle*xi*uhat_i)/(c_w)));
 cff1_eta=(1.0/(2.0*(T_i-T_iu)*w_sc_eta));
 cff1_dsf=(1.0/(2.0*(T_i-T_iu)*w_sc_dsf)); 
 %
-% For ripple regime
-%
-% TODO: this can be made a little more robust
-% if(eta>0.0)
-%     P=alpha*eta*cff*cff1_eta;
-% elseif(eta==0.0)
-%     %
-%     % For sheet flow regime
-%     %
-%     P=alpha*dsf*cff*cff1_dsf;
-% end
+% For ripple regime 
 % CRS like this:
 P=alpha*dsf*cff*cff1_dsf;
 if(eta>d50)
@@ -254,10 +249,10 @@ om_i=m*(theta_diff)^n ;
          
 %
 % VA2013 Equation 23-26, Sandload entrained during half cycle
-% 
+%  
 if(P<=1.0)
     om_ii=om_i;
-    om_iy=0.0;
+    om_iy=0.0 ;
 else;
     om_ii=om_i/P;
     cff=1.0/P;
@@ -301,7 +296,7 @@ end % function w_sc_calc
 function [T_c, T_t, T_cu, T_tu, eta, udelta, alpha, ksw, tau_wRe]=....... 
     full_wave_cycle_stress_factors(d50, d90, osmgd, .....
              Td, depth, T_c, T_t, T_cu, T_tu, RR, ......
-             umag_curr, phi_curwave, Zref, uhat, ahat);
+             umag_curr, phi_curwave, Zref, umax, umin, uhat, ahat);
 %
 % Function returns
 % eta-    ripple height
@@ -333,6 +328,7 @@ lambda=lambda*ahat;
 % This loop is for the full cycle 
 theta_timeavg=0.0;
 theta_timeavg_old=0.0;
+
   for iter=1:total_iters
 %     % These agree 
     %   
@@ -357,7 +353,7 @@ theta_timeavg_old=0.0;
     %   
     fd=fd_calc(umag_curr, Zref, ksd); 
     ustarc=(0.5*fd).^0.5.*umag_curr;      %friction velocity [m/s]
-    %   
+    %    
     udelta=ustarc/(0.4*log(30.0*Zref/ksd));
     %   
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
@@ -373,6 +369,7 @@ theta_timeavg_old=0.0;
     end
     theta_timeavg_old=theta_timeavg;
   end
+  
 %
 % Calculate wave Reynolds stress from full cycle wave and friction factor
 % that were formed from the iterative cycle, VA2013, Eqn.22
@@ -380,6 +377,7 @@ theta_timeavg_old=0.0;
 alpha=udelta/(udelta+uhat);
 fwd=alpha*fd+(1.0-alpha)*fw;
 %
+ 
 k=kh_calc(Td,depth)/depth;     % Wave number
 c_w=2*pi/(k*Td);               % Wave speed
 alpha_w=0.424;
@@ -390,7 +388,7 @@ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
 % wave boundary layer)
 %
 % Calculate the time period based on udelta     
-%
+% 
 [T_c, T_t]=current_timeperiod(udelta, phi_curwave, umax, umin, RR, T_c, T_t, Td);
 %
 % Calculate the effect of surface waves 
@@ -401,7 +399,7 @@ return
 end % function full_wave_factors
 
 function [dsf, theta_ix, theta_iy, mag_theta_i]=half_wave_cycle_stress_factors(T_iu, T_i,......
-                           ui_r, uhat_i, udelta, phi_curwave, alpha, fd, ahat, ksw, tau_wRe)
+                      ui_r, uhat_i, udelta, phi_curwave, alpha, fd, ahat, ksw, tau_wRe)
 %
 % For each half cycle the function returns:
 % dsf - Sheet flow thickness
@@ -419,13 +417,13 @@ fw_i=fwi_calc(T_iu, T_i, ahat, ksw);
 fwd_i=alpha*fd+(1.0-alpha)*fw_i;
 %
 % Update theta_hat_i based on crest/trough amplitude uhat Eqn. C.2
-%
+% 
 theta_hat_i=0.5*fwd_i*uhat_i^2*osmgd;
 %
 % Sheet flow thickness VA2013 Appendix C C.1
 % Update from converged value of theta_hat_i 
 %
-dsf=dsf_calc(d50, theta_hat_i); %this dsf is in m
+dsf=dsf_calc(d50, theta_hat_i) %this dsf is in m
 %
 % Calculated the velocity magnitude based on representative velocities
 % equation 12 from Van der A, 2013 
@@ -535,7 +533,7 @@ function mu = mu_calc(d50);
 % Calculate bed roughness factor based on grain size
 % VA2013 Appendix A., required for current related bed roughness
 % and wave related bed roughness.
-d50_mm=d50*0.001;
+d50_mm=d50*1000;
 %
 if(d50_mm<=0.15)
     mu=6.0;
@@ -635,7 +633,7 @@ function dsf = dsf_calc(d50, theta_i);
 %
 % Sheet flow thickness VA2013 Appendix C.1.
 %
-d50_mm=d50*0.001;
+d50_mm=d50*1000.0;
 if(d50_mm<=0.15)
     cff=25.0*theta_i;
 elseif(d50_mm>0.15 & d50_mm<0.20)
