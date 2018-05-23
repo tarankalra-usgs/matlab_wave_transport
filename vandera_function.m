@@ -234,8 +234,8 @@ if(eta>d50)
 end
 
 % TODO CRS - this is not the same eps_eff that I put into the main routine
-eps_eff=(dsf/d50)^0.25; 
-%eps_eff=1.0; 
+%eps_eff=(dsf/d50)^0.25; 
+eps_eff=1.0; 
 theta_ieff=eps_eff*mag_theta_i ;
 %
 % Find critical Shields parameters based on Soulsby (1997).
