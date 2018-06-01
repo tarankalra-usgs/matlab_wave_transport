@@ -5,7 +5,8 @@ function [bedld_x, bedld_y]=vandera_function_multiplesed(time, Hs, Td, depth,...
 %
 %   Summary of this function goes here
 %   Detailed explanation goes here
-%
+% 
+
 rho0 = 1025.0;
 g = 9.81 ;            % m/s2
 vonKar = 0.41 ;       % non-dimensional
@@ -14,7 +15,7 @@ nu = 1.36E-6  ;       % kinematic viscosity m2 s-1
 deg2rad = pi / 180.0;
 rad2deg = 180.0 / pi;
 rhos= 2650.0;
-smgd=(rhos/rho0-1.0)*g*d50;
+smgd=(rhos/rho0-1.0)*g.*d50;
 osmgd=1.0/smgd;
 
 uhat=urms*sqrt(2.0);
@@ -62,7 +63,7 @@ ut_r=0.5*sqrt(2.0)*uhat_t;
 [T_c, T_t, T_cu, T_tu, eta, udelta, alpha, ksw, tau_wRe]=..... 
                          full_wave_cycle_stress_factors(d50, d90, osmgd, .....
                              Td, depth, T_c, T_t, T_cu, T_tu, RR, ......
-                     umag_curr, phi_curwave, Zref, umax, umin, uhat, ahat);   
+                     umag_curr, phi_curwave, Zref, delta, umax, umin, uhat, ahat);   
 %
 %-----------------------------------------------------------------------
 % 2. Bed shear stress (Shields parameter) for Crest half cycle
@@ -256,7 +257,7 @@ end % function w_sc_calc
 function [T_c, T_t, T_cu, T_tu, eta, udelta, alpha, ksw, tau_wRe]=....... 
     full_wave_cycle_stress_factors(d50, d90, osmgd, .....
              Td, depth, T_c, T_t, T_cu, T_tu, RR, ......
-             umag_curr, phi_curwave, Zref, umax, umin, uhat, ahat);
+             umag_curr, phi_curwave, Zref, delta, umax, umin, uhat, ahat);
 %
 % Function returns
 % eta-    ripple height
@@ -289,7 +290,7 @@ lambda=lambda*ahat;
 theta_timeavg=0.0;
 theta_timeavg_old=0.0;
 
-  for iter=1:total_iters
+  for iter=1:1%total_iters
 %     % These agree 
     %   
     % Calculate wave related bed roughness from VA2013 A.5
@@ -301,8 +302,8 @@ theta_timeavg_old=0.0;
     fw=fw_calc(ahat, ksw); 
     %   
     % Calculate current-related bed roughness from VA2013 Appendix A.1
-    %   
-    ksd=ksd_calc(d50, d90, mu_calc(d50), theta_timeavg, eta, lambda);
+    %     
+    ksd=ksd_calc(d50, d90, mu_calc(d50), theta_timeavg, eta, lambda) ;
     %   
     % Calculate full-cycle current friction factor from VA2013 Eqn. 20
     % Within COAWST use bustr, bvstr to get delta 
@@ -312,22 +313,22 @@ theta_timeavg_old=0.0;
     % udelta=current velocity at the top of the wave boundary layer
     %   
     fd=fd_calc(umag_curr, Zref, ksd); 
-    ustarc=(0.5*fd).^0.5.*umag_curr;      %friction velocity [m/s]
-    %    
-    udelta=0.0; %ustarc/(0.4*log(30.0*delta/ksd));
+    ustarc=(0.5*fd).^0.5.*umag_curr   ;   %friction velocity [m/s]
+    %  
+    udelta=ustarc./(0.4*log(30.0.*(delta./ksd) ));
     %   
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
     % 
-    theta_timeavg=osmgd*(0.5*fd*udelta^2.0+...
-                         0.25*fw*uhat^2.0) ;
-    % 
+    
+    theta_timeavg=osmgd*(0.5*fd*udelta.^2.0+0.25*fw*uhat.^2.0) ;
+    %   
     if(abs(theta_timeavg-theta_timeavg_old) < tol);
         break
-    end
+    end  
     if((abs(theta_timeavg-theta_timeavg_old) >= tol)&&(iter==total_iters));
         fprintf(1,'Warning...stress calcs did not converge.\n');
     end
-    theta_timeavg_old=theta_timeavg;
+    theta_timeavg_old=theta_timeavg; 
   end
   
 %
@@ -399,17 +400,17 @@ mag_ui=sqrt(ui_rx.*ui_rx+ui_ry.*ui_ry);
 %
 % VA2013-Magnitude of Shields parameter Eqn. 17
 %
-mag_theta_i=0.5*fwd_i*mag_ui.^2*osmgd;
+mag_theta_i=0.5*fwd_i.*mag_ui.^2*osmgd;
 %
 %-----------------------------------------------------------------------
 % Shields parameter VA2013 Eqn 15
 % rho0 is required for non-dimensionalizing
 %-----------------------------------------------------------------------
 %
-theta_ix=mag_theta_i*ui_rx/(mag_ui)+(tau_wRe*osmgd/rho0);
-theta_iy=mag_theta_i*ui_ry/(mag_ui);
+theta_ix=mag_theta_i.*ui_rx./(mag_ui)+(tau_wRe*osmgd/rho0);
+theta_iy=mag_theta_i.*ui_ry./(mag_ui);
 %
-mag_theta_i=sqrt(theta_ix*theta_ix+theta_iy*theta_iy);
+mag_theta_i=sqrt(theta_ix.*theta_ix+theta_iy.*theta_iy);
 
 return
 end % function half_wave_cycle_factor
@@ -543,9 +544,9 @@ function fw = fw_calc(ahat, ksw);
 %
 % Calculate full-cycle wave friction factor from VA2013 Eqn. A.4.
 %
-ratio=ahat/ksw;
+ratio=ahat./ksw;
 if(ratio>1.587);
-    fw = 0.00251*exp(5.21*(ratio)^(-0.19));
+    fw = 0.00251*exp(5.21*(ratio).^(-0.19));
 else
     fw = 0.3;
 end
@@ -575,11 +576,11 @@ function fwi = fwi_calc(T_iu, T_i, ahat, ksw);
 % Wave friction factor for wave and crest half cycle VA2013 Eqn. 21.
 %
 c1=2.6;
-ratio=ahat/ksw;
+ratio=ahat./ksw;
 if(ratio>1.587)
     cff=(2.0*T_iu/T_i)^c1;
    % cff1=(cff*ratio)
-    fwi=0.00251*exp(5.21*(cff*ratio)^(-0.19)) ;
+    fwi=0.00251*exp(5.21*(cff*ratio).^(-0.19)) ;
 else
     fwi = 0.3;
 end

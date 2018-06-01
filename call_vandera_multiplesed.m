@@ -20,10 +20,10 @@ clear all ; close all ; clc;
 
 Td = 6.5;%3.5;
 depth =  3.5;%3.5;
-d50 = [0.13e-3, 0.55e-3]' ;
-bed_frac=[0.5, 0.5]' ; 
+d50 = [0.13e-3, 0.55e-3] ;
+bed_frac=[0.5, 0.5] ; 
 
-d90 = 1.3*d50;
+d90 = 1.3.*d50;
 Hs=1.6; 
 % umag_curr is the current velocity magnitude (MAKE Sure its the magnitude)
 % direction of currents is counter-clockwise from wave direction
@@ -46,12 +46,13 @@ time=1;
 net_bedldx=0.0; net_bedldy=0.0 ; 
 
 for i=1:2 % sediment loop
+    
   [bedldx(i), bedldy(i)]=vandera_function_multiplesed(time, Hs, Td, depth,.......
-                         d50(i), d50mix, d90, bed_frac(i), umag_curr,.......
+                         d50(i), d50mix, d90(i), bed_frac(i), umag_curr,.......
                          phi_curwave, urms, Zref, delta);
-%                      
-  net_bedldx=net_bedldx+bedldx(i) ; 
+%            
+  net_bedldx=net_bedldx+bedldx(i) ;  
   net_bedldy=net_bedldy+bedldy(i) ;  
-end 
- net_bedldx
- net_bedldy
+end  
+net_bedldx
+  net_bedldy
