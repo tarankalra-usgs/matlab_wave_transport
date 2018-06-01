@@ -1,4 +1,4 @@
-function vandera_function(time, Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms, Zref)
+function vandera_function(time, Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms, Zref, delta)
 
 fid=fopen('vandera_output.txt','w');
 %fprintf(fid,'------------------------------\n');
@@ -354,7 +354,7 @@ theta_timeavg_old=0.0;
     fd=fd_calc(umag_curr, Zref, ksd); 
     ustarc=(0.5*fd).^0.5.*umag_curr;      %friction velocity [m/s]
     %    
-    udelta=ustarc/(0.4*log(30.0*Zref/ksd));
+    udelta=ustarc/(0.4*log(30.0*delta/ksd));
     %   
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
     % 
