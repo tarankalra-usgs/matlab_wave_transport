@@ -8,9 +8,8 @@ function [Tc, Tt] =current_timeperiod(unet, Ang, ...
  % in SANTOSS report. 
  % Report number: SANTOSS_UT_IR3
  % Date: January 2010
- % 
-unet_xdir=unet*cos(Ang/180*pi);
-
+ %  
+unet_xdir=unet*cos(Ang);
 if(RR_cmg==0.5)
   Tc = 0.5*T;
   Tt = 0.5*T;
