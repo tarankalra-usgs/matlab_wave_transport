@@ -38,7 +38,7 @@ c_w=2*pi/(k*Td) ;              % Wave speed
 % COMMON TO both crest and trough
 %-----------------------------------------------------------------------
 %
-[r, phi ] = skewness_params(Hs, Td, depth );
+[r, phi, Ur ] = skewness_params(Hs, Td, depth );
  
 %-----------------------------------------------------------------------
 % Abreu et al. use skewness params to get representative critical orbital
@@ -60,6 +60,7 @@ uhat_c=umax;
 uhat_t=umin;
 fprintf(fid,'uhat_c uhat_t. %f, %f\n',uhat_c, uhat_t);
 fprintf(fid,'------------------------------\n');
+fprintf(fid,'Ursell number %f\n',Ur);
 %
 %-----------------------------------------------------------------------
 % VA2013 Equation 10, 11
@@ -112,6 +113,8 @@ fprintf(fid,'|theta_t|,theta_tx, theta_ty: %f %f %f\n',...
     mag_theta_t, theta_tx, theta_ty ); 
 fprintf(fid,'------------------------------\n');
 fprintf(fid,'trough cycle:: sheetflow thickness(m) %f\n', dsf_t );
+fprintf(fid,'------------------------------\n');
+ 
 %
 %%
 %-----------------------------------------------------------------------
@@ -171,9 +174,9 @@ smgd_3=sqrt((rhos/rho0-1.0)*g*d50.^3.0);
 bed_frac=1.0;
 bedld_x=bed_frac*(bedld_cx*T_c+bedld_tx*T_t)/Td;
 bedld_y=bed_frac*(bedld_cy*T_c+bedld_ty*T_t)/Td;
-
-bedld_x=bed_frac*smgd_3*(bedld_x) ;
-bedld_y=bed_frac*smgd_3*(bedld_y) ;
+ 
+bedld_x=bed_frac*smgd_3*(bedld_x);
+bedld_y=bed_frac*smgd_3*(bedld_y);
 
 fprintf(fid,'------------------------------\n');
 fprintf(fid,'bedload in x and y dir %f %f\n',bedld_x,bedld_y); 
@@ -351,11 +354,12 @@ theta_timeavg_old=0.0;
     % Use fd (full cycle current friction to get udelta)
     % udelta=current velocity at the top of the wave boundary layer
     %   
-    fd=fd_calc(umag_curr, Zref, ksd); 
+    fd=fd_calc(umag_curr, Zref, ksd) ;
+    
     ustarc=(0.5*fd).^0.5.*umag_curr;      %friction velocity [m/s]
     %    
-    udelta=ustarc/(0.4*log(30.0*delta/ksd));
-    %   
+    udelta=(ustarc/0.4)*log(30.0*delta/ksd);
+    %     
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
     % 
     theta_timeavg=osmgd*(0.5*fd*udelta^2.0+...
@@ -393,8 +397,8 @@ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
 %
 % Calculate the effect of surface waves 
 %
-%[T_c, T_cu, T_t, T_tu]=surface_wave_mod(Td, depth, uhat, T_c, T_cu, .....
-%                                        T_t, T_tu);
+ [T_c, T_cu, T_t, T_tu]=surface_wave_mod(Td, depth, uhat, T_c, T_cu, .....
+                                        T_t, T_tu);
 return
 end % function full_wave_factors
 
@@ -423,7 +427,7 @@ theta_hat_i=0.5*fwd_i*uhat_i^2*osmgd;
 % Sheet flow thickness VA2013 Appendix C C.1
 % Update from converged value of theta_hat_i 
 %
-dsf=dsf_calc(d50, theta_hat_i) %this dsf is in m
+dsf=dsf_calc(d50, theta_hat_i); %this dsf is in m
 %
 % Calculated the velocity magnitude based on representative velocities
 % equation 12 from Van der A, 2013 
@@ -594,7 +598,7 @@ return
 end % function fw_calc
 
 %% fd_calc
-function fd = fd_calc(umag_curr, dsf, ksd);
+function fd = fd_calc(umag_curr, Zref, ksd);
 %
 % Calculate current related friction factor VA2013 Eqn. 20
 % Assuming logarithmic velocity profile.
@@ -603,7 +607,7 @@ function fd = fd_calc(umag_curr, dsf, ksd);
     fd=0.0;
   else 
     von_k = 0.41;
-    fd = 2.0*(von_k/log(30.0*dsf/ksd))^2.0;
+    fd = 2.0*(von_k/log(30.0*Zref/ksd))^2.0;
   end 
 return
 end % function fd_calc
@@ -650,7 +654,7 @@ end % function dsf_calc
 %
 
 %% skewness_params
-function [r, phi] = skewness_params(H_s, T, depth);
+function [r, phi, Ur] = skewness_params(H_s, T, depth);
 %
 % Ruessink et al. provides equations for calculating skewness parameters
 % Uses Malarkey and Davies equations to get "bb" and "r"
