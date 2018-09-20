@@ -142,8 +142,8 @@ bedld_ty=cff2*cff3;
 smgd_3=sqrt((rhos/rho0-1.0)*g*d50.^3.0);
 
 % Dimensionalize to get units of kg m-1 s-1
-bedld_x=bed_frac*rhos*smgd_3*(bedld_cx*T_c+bedld_tx*T_t)/Td;  
-bedld_y=bed_frac*rhos*smgd_3*(bedld_cy*T_c+bedld_ty*T_t)/Td;
+bedld_x=bed_frac*smgd_3*(bedld_cx*T_c+bedld_tx*T_t)/Td;  
+bedld_y=bed_frac*smgd_3*(bedld_cy*T_c+bedld_ty*T_t)/Td;
 
 %bedld_x=rhos*(bedld_x) ;
 %bedld_y=rhos*(bedld_y) ;
@@ -315,7 +315,7 @@ theta_timeavg_old=0.0;
     fd=fd_calc(umag_curr, Zref, ksd); 
     ustarc=(0.5*fd).^0.5.*umag_curr   ;   %friction velocity [m/s]
     %  
-    udelta=ustarc./(0.4*log(30.0.*(delta./ksd) ));
+    udelta=(ustarc./0.4)*log(30.0.*(delta./ksd) );
     %   
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
     % 
