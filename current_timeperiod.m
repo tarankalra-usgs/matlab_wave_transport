@@ -9,7 +9,7 @@ function [Tc, Tt] =current_timeperiod(unet, Ang, ...
  % Report number: SANTOSS_UT_IR3
  % Date: January 2010
  %  
-unet_xdir=unet*cos(Ang);
+unet_xdir=unet*cos(Ang) ;
 if(RR_cmg==0.5)
   Tc = 0.5*T;
   Tt = 0.5*T;
@@ -35,7 +35,7 @@ elseif(RR_cmg>0.5)
   Tc = DTc_cmg;
   Tt = DTt_cmg;  
   if(unet_xdir>=umax);
-    Tc = 1*T;
+    Tc = 1*T; 
     Tt = 0;
   elseif(unet_xdir<=umin);
     Tc = 0;

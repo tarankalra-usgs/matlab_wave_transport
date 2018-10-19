@@ -1,7 +1,7 @@
 function [bedld_x, bedld_y]=vandera_function_multiplesed(time, Hs, Td, depth,....
                               d50, d50mix, d90, bed_frac, umag_curr, .....
-                              phi_curwave, urms, Zref, delta);   
-     
+                              phi_curwave, urms, Zref, delta,....
+                              waveavgd_stress_term, surface_wave);   
 %
 %   Summary of this function goes here
 %   Detailed explanation goes here
@@ -204,8 +204,9 @@ if(eta>d50)
 end
 %
 % TODO CRS - this is not the same eps_eff that I put into the main routine
-eps_eff=(d50/d50mix).^0.25; 
-% 
+eps_eff=(d50/d50mix).^0.25 ; 
+%
+%eps_eff=1.0 ;
 theta_ieff=eps_eff*mag_theta_i ;
 %
 % Find critical Shields parameters based on Soulsby (1997).
@@ -215,14 +216,14 @@ theta_cr=theta_cr_calc(d50, rhos);
 % Sand load entrained in the flow during each half-cycle
 % 
 theta_diff=max((theta_ieff-theta_cr),0.0)  ;
-om_i=m*(theta_diff)^n ;
+om_i=m*(theta_diff)^n ; 
          
 %
 % VA2013 Equation 23-26, Sandload entrained during half cycle
 %  
 if(P<=1.0)
     om_ii=om_i ;
-    om_iy=0.0 ;
+    om_iy=0.0  ;
 else;
     om_ii=om_i/P;  
     cff=1.0/P;
@@ -290,7 +291,7 @@ lambda=lambda*ahat;
 theta_timeavg=0.0;
 theta_timeavg_old=0.0;
 
-  for iter=1:1%total_iters
+  for iter=1:total_iters
 %     % These agree 
     %   
     % Calculate wave related bed roughness from VA2013 A.5
@@ -313,13 +314,13 @@ theta_timeavg_old=0.0;
     % udelta=current velocity at the top of the wave boundary layer
     %   
     fd=fd_calc(umag_curr, Zref, ksd); 
+    
     ustarc=(0.5*fd).^0.5.*umag_curr   ;   %friction velocity [m/s]
     %  
-    udelta=(ustarc./0.4)*log(30.0.*(delta./ksd) );
+    udelta=max( ((ustarc/0.4)*log(30.0*delta/ksd)),0.00000001 );
     %   
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
-    % 
-    
+    %  
     theta_timeavg=osmgd*(0.5*fd*udelta.^2.0+0.25*fw*uhat.^2.0) ;
     %   
     if(abs(theta_timeavg-theta_timeavg_old) < tol);
@@ -343,7 +344,11 @@ k=kh_calc(Td,depth)/depth;     % Wave number
 c_w=2*pi/(k*Td);               % Wave speed
 alpha_w=0.424;
 %
-tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
+if(waveavgd_stress_term==1)
+ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
+else
+ tau_wRe=0;
+end 
 %
 % Compute the change in time period based on converged udelta (current velocity at 
 % wave boundary layer)
@@ -354,8 +359,11 @@ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
 %
 % Calculate the effect of surface waves 
 %
-%[T_c, T_cu, T_t, T_tu]=surface_wave_mod(Td, depth, uhat, T_c, T_cu, .....
-%                                        T_t, T_tu);
+if(surface_wave==1)
+ [T_c, T_cu, T_t, T_tu]=surface_wave_mod(Td, depth, uhat, T_c, T_cu, .....
+                                       T_t, T_tu);
+end 
+
 return
 end % function full_wave_factors
 
@@ -555,7 +563,7 @@ return
 end % function fw_calc
 
 %% fd_calc
-function fd = fd_calc(umag_curr, dsf, ksd);
+function fd = fd_calc(umag_curr, Zref, ksd);
 %
 % Calculate current related friction factor VA2013 Eqn. 20
 % Assuming logarithmic velocity profile.
@@ -564,7 +572,7 @@ function fd = fd_calc(umag_curr, dsf, ksd);
     fd=0.0;
   else 
     von_k = 0.41;
-    fd = 2.0*(von_k/log(30.0*dsf/ksd))^2.0;
+    fd = 2.0*(von_k/log(30.0*Zref/ksd))^2.0;
   end 
 return
 end % function fd_calc
@@ -595,7 +603,7 @@ function dsf = dsf_calc(d50, theta_i);
 % Sheet flow thickness VA2013 Appendix C.1.
 %
 d50_mm=d50*1000.0;
-if(d50_mm<=0.15)
+if(d50_mm<=0.15);
     cff=25.0*theta_i;
 elseif(d50_mm>0.15 & d50_mm<0.20)
     cff=25.0-(12.0*(d50_mm-0.15)/0.05);

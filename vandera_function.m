@@ -1,4 +1,5 @@
-function vandera_function(time, Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms, Zref, delta)
+function vandera_function(time, Hs, Td, depth, d50, d90, umag_curr, phi_curwave, urms,.....
+                          Zref, delta, waveavgd_stress_term, surface_wave)
 
 fid=fopen('vandera_output.txt','w');
 %fprintf(fid,'------------------------------\n');
@@ -149,10 +150,10 @@ wavecycle=-1.0;
 %
 %
 cff1=0.5*T_c/(T_cu);
-cff2=sqrt(mag_theta_c)*(om_cc+cff1*om_tc);
+cff2=sqrt(mag_theta_c)*(om_cc+cff1*om_tc);;
 %
 cff3=theta_cx/mag_theta_c;
-bedld_cx=cff2*cff3 ; 
+bedld_cx=cff2*cff3;
 %
 cff3=theta_cy/mag_theta_c;
 bedld_cy=cff2*cff3;
@@ -175,7 +176,7 @@ bed_frac=1.0;
 bedld_x=bed_frac*(bedld_cx*T_c+bedld_tx*T_t)/Td;
 bedld_y=bed_frac*(bedld_cy*T_c+bedld_ty*T_t)/Td;
  
-bedld_x=bed_frac*smgd_3*(bedld_x);
+bedld_x=bed_frac*smgd_3*(bedld_x) 
 bedld_y=bed_frac*smgd_3*(bedld_y);
 
 fprintf(fid,'------------------------------\n');
@@ -247,8 +248,8 @@ theta_cr=theta_cr_calc(d50, rhos);
 %
 % Sand load entrained in the flow during each half-cycle
 % 
-theta_diff=max((theta_ieff-theta_cr),0.0) ;
-om_i=m*(theta_diff)^n ;
+theta_diff=max((theta_ieff-theta_cr),0.0) ;;
+om_i=m*(theta_diff)^n  ;
          
 %
 % VA2013 Equation 23-26, Sandload entrained during half cycle
@@ -358,7 +359,7 @@ theta_timeavg_old=0.0;
     
     ustarc=(0.5*fd).^0.5.*umag_curr;      %friction velocity [m/s]
     %    
-    udelta=(ustarc/0.4)*log(30.0*delta/ksd);
+    udelta=max( ((ustarc/0.4)*log(30.0*delta/ksd)),0.00000001 );
     %     
     % Calculate Time-averaged absolute Shields stress VA2013 Appendix Eq. A.3
     % 
@@ -386,7 +387,11 @@ k=kh_calc(Td,depth)/depth;     % Wave number
 c_w=2*pi/(k*Td);               % Wave speed
 alpha_w=0.424;
 %
-tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
+if(waveavgd_stress_term==1)
+ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
+else
+ tau_wRe=0;
+end 
 %
 % Compute the change in time period based on converged udelta (current velocity at 
 % wave boundary layer)
@@ -397,8 +402,11 @@ tau_wRe=rho0*fwd*alpha_w*uhat^3.0/(2.0*c_w);
 %
 % Calculate the effect of surface waves 
 %
+if(surface_wave==1)
  [T_c, T_cu, T_t, T_tu]=surface_wave_mod(Td, depth, uhat, T_c, T_cu, .....
                                         T_t, T_tu);
+end
+%
 return
 end % function full_wave_factors
 
