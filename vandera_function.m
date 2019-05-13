@@ -127,7 +127,7 @@ fprintf(fid,'------------------------------\n');
 %-----------------------------------------------------------------------
 %
 wavecycle=1.0;
-[ om_cc, om_tc ]= sandload_vandera(wavecycle,...
+[ om_cc, om_ct ]= sandload_vandera(wavecycle,...
     Hs, Td,  depth, RR,                 ...
     d50, rhos, c_w,                     ...
     eta, dsf_c,                           ...
@@ -138,7 +138,7 @@ wavecycle=1.0;
 %-----------------------------------------------------------------------
 %
 wavecycle=-1.0;
-[om_tt, om_ct] = sandload_vandera(wavecycle,...
+[om_tt, om_tc] = sandload_vandera(wavecycle,...
     Hs, Td,  depth, RR,                 ...
     d50, rhos, c_w,                     ...
     eta, dsf_t,                           ...
@@ -545,12 +545,12 @@ function mu = mu_calc(d50);
 % Calculate bed roughness factor based on grain size
 % VA2013 Appendix A., required for current related bed roughness
 % and wave related bed roughness.
-d50_mm=d50*1000;
+d50_mm=d50*1000 ;
 %
 if(d50_mm<=0.15)
     mu=6.0;
-elseif(d50_mm>0.15 && d50_mm<0.20)
-    mu=6.0-5.0*((d50_mm-0.15)/(0.2-0.15));
+elseif(d50_mm>0.15 && d50_mm<=0.20)
+    mu=6.0-5.0*((d50_mm-0.15)/(0.2-0.15)) 
 elseif(d50_mm>0.20)
     mu=1.0;
 end
