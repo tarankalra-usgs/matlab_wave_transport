@@ -266,12 +266,12 @@ end
 if(wavecycle==1)
   fprintf(fid,'------------------------------\n');
   fprintf(fid,'Phase lag parameter crest %f\n',P); 
-  fprintf(fid,'o_cc,o_tc, %f %f\n',om_ii,om_iy);
+  fprintf(fid,'o_cc,o_ct, %f %f\n',om_ii,om_iy);
 elseif(wavecycle==-1)
   fprintf(fid,'------------------------------\n');
   fprintf(fid,'Phase lag parameter trough %f\n',P); 
-  fprintf(fid,'o_tt,o_ct, %f %f\n',om_ii,om_iy);
-end 
+  fprintf(fid,'o_tt,o_tc, %f %f\n',om_ii,om_iy);
+end
 return
 end % function sandload_vandera
 
